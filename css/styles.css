@@ -600,16 +600,14 @@ a:focus-visible {
 }
 
 .kick-instructions {
-  position: absolute;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
+  margin: 14px 0;
   color: rgba(23,24,28,0.75);
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   font-size: 0.7rem;
   font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
   text-transform: uppercase;
-  z-index: 10;
 }
 
 .result-banner {
@@ -655,13 +653,14 @@ a:focus-visible {
 
 .play-actions {
   display: block;
-  max-width: 600px;
-  margin: 12px auto 0;
+  width: 50%;
+  max-width: 300px;
+  margin: 0 auto;
 }
 
 .kick-btn {
   width: 100%;
-  min-height: 58px;
+  min-height: 60px;
   font-size: 1.08rem;
   letter-spacing: 0.18em;
 }
@@ -789,10 +788,7 @@ a:focus-visible {
   }
 
   .kick-instructions {
-    width: calc(100% - 22px);
-    text-align: center;
-    letter-spacing: 0.08em;
-    line-height: 1.5;
+    padding: 0 8px;
   }
 
   .primary-btn,
