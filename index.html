@@ -15,6 +15,7 @@
       <header class="site-header" aria-label="Winter FancyFaire* brand header">
         <div class="brand-block">
           <p class="brand-kicker">Winter FancyFaire*</p>
+          <p class="brand-caption">KICK · SCORE · DISCOVER</p>
         </div>
         <div class="brand-visual">
           <img
@@ -27,7 +28,7 @@
 
       <main class="app-shell">
         <section id="start-screen" class="panel intro-panel" aria-labelledby="intro-title">
-          <p class="eyebrow">WFF* GAME</p>
+          <p class="eyebrow">Winter FancyFaire* GAME</p>
           <h1 id="intro-title">Fancy<br />Field Goal</h1>
           <p class="subhead">How many can you make?</p>
           <p class="description">Kick for points and hit specialty food bonuses along the way.</p>
@@ -54,15 +55,24 @@
           </div>
 
           <div id="field-container" class="field-container" role="group" aria-label="Football field play area. Swipe upward from the football to kick.">
-            <div class="field-sky"></div>
+            <div class="field-sky" aria-hidden="true"></div>
             <div class="mountain mountain-back" aria-hidden="true"></div>
             <div class="mountain mountain-front" aria-hidden="true"></div>
-            <div class="field-line field-line-top" aria-hidden="true"></div>
+            <div class="stadium-bowl" aria-hidden="true">
+              <span class="stadium-crowd"></span>
+              <span class="stadium-snow"></span>
+            </div>
+            <div class="football-field" aria-hidden="true">
+              <span class="yard-lines"></span>
+              <span class="yard-hash yard-hash-left"></span>
+              <span class="yard-hash yard-hash-right"></span>
+              <span class="field-arrow"></span>
+            </div>
             <div class="goal-posts" aria-hidden="true">
-              <span class="left-post"></span>
-              <span class="right-post"></span>
-              <span class="crossbar"></span>
-              <span class="goal-arch"></span>
+              <span class="goal-upright goal-upright-left"></span>
+              <span class="goal-upright goal-upright-right"></span>
+              <span class="goal-crossbar"></span>
+              <span class="goal-support"></span>
             </div>
             <div id="wind-indicator" class="wind-indicator" aria-hidden="true">
               <span class="wind-arrow"></span>

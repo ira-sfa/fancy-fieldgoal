@@ -4,7 +4,7 @@ const CONFIG = {
   foodBonusPoints: 100,
   enableFoodBonuses: true,
   goalX: 78,
-  goalY: 42,
+  goalY: 34,
   bonusChance: 0.72,
   windMax: 12,
   distanceScale: 0.5,
@@ -102,6 +102,7 @@ function showScreen(screenName) {
   elements.startScreen.hidden = screenName !== 'start';
   elements.gameScreen.hidden = screenName !== 'game';
   elements.gameOverScreen.hidden = screenName !== 'game-over';
+  document.querySelector('.page-shell').classList.toggle('is-playing', screenName === 'game');
 }
 
 function updateHud() {
@@ -118,6 +119,8 @@ function updateBallPosition(xPercent, yPercent) {
 }
 
 function resetBall() {
+  elements.football.classList.remove('is-kicking');
+  elements.football.style.setProperty('--depth-scale', '1');
   updateBallPosition(CONFIG.ballSpawnX, CONFIG.ballSpawnY);
 }
 
@@ -133,12 +136,12 @@ function buildBonus() {
   }
 
   const items = [
-    { label: 'CHEESE BONUS!', emoji: '🧀', x: 60, y: 36 },
-    { label: 'PRETZEL BONUS!', emoji: '🥨', x: 62, y: 34 },
-    { label: 'POPCORN BONUS!', emoji: '🍿', x: 58, y: 39 },
-    { label: 'COOKIE BONUS!', emoji: '🍪', x: 63, y: 38 },
-    { label: 'CHOCOLATE BONUS!', emoji: '🍫', x: 60, y: 42 },
-    { label: 'PEPPER BONUS!', emoji: '🌶️', x: 64, y: 37 }
+    { label: 'CHEESE BONUS!', emoji: '🧀', x: 60, y: 27 },
+    { label: 'PRETZEL BONUS!', emoji: '🥨', x: 62, y: 28 },
+    { label: 'POPCORN BONUS!', emoji: '🍿', x: 58, y: 28 },
+    { label: 'COOKIE BONUS!', emoji: '🍪', x: 63, y: 29 },
+    { label: 'CHOCOLATE BONUS!', emoji: '🍫', x: 60, y: 30 },
+    { label: 'PEPPER BONUS!', emoji: '🌶️', x: 64, y: 29 }
   ];
 
   const chosen = items[Math.floor(Math.random() * items.length)];
@@ -279,7 +282,11 @@ function completeKick(success, distance, bonusLabel) {
     lines.push(`+${CONFIG.foodBonusPoints} FANCY POINTS`);
   }
 
-  showBanner(lines.join('\n'), success ? 'success' : 'neutral');
+  showBanner(lines.join('\n'), success || bonusLabel ? 'success' : 'neutral');
+  if (success || bonusLabel) {
+    elements.fieldContainer.classList.add('is-scoring');
+    window.setTimeout(() => elements.fieldContainer.classList.remove('is-scoring'), 700);
+  }
   updateHud();
   revealNextKick();
 
@@ -298,6 +305,7 @@ function beginKick(vx, vy) {
   }
 
   state.inFlight = true;
+  elements.football.classList.add('is-kicking');
   const rect = elements.fieldContainer.getBoundingClientRect();
   const upwardSwipe = Math.abs(vy);
   const swipeStrength = clamp(
@@ -339,6 +347,8 @@ function beginKick(vx, vy) {
       (CONFIG.goalY - CONFIG.ballSpawnY) * progress -
       CONFIG.arcHeight * 4 * progress * (1 - progress);
 
+    elements.football.style.setProperty('--depth-scale', String(1 - progress * 0.62));
+
     if (isBallWithinBonus(stateBall.x, stateBall.y)) {
       bonusLabel = markBonusCollected() || bonusLabel;
     }
@@ -353,6 +363,7 @@ function beginKick(vx, vy) {
       );
       state.longest = Math.max(state.longest, distance);
       state.inFlight = false;
+      elements.football.classList.remove('is-kicking');
       completeKick(success, distance, bonusLabel);
       return;
     }
@@ -363,6 +374,7 @@ function beginKick(vx, vy) {
         Math.round(Math.abs(stateBall.x - CONFIG.ballSpawnX) * CONFIG.distanceScale)
       );
       state.inFlight = false;
+      elements.football.classList.remove('is-kicking');
       completeKick(false, distance, bonusLabel);
       return;
     }
