@@ -31,7 +31,7 @@
           <p class="eyebrow">Winter FancyFaire* GAME</p>
           <h1 id="intro-title">Fancy<br />Field Goal</h1>
           <p class="subhead">How many can you make?</p>
-          <p class="description">Kick for points and hit specialty food bonuses along the way.</p>
+          <p class="description">Set your power, aim downfield, and kick for points. Hit specialty food bonuses along the way.</p>
           <div class="cta-group">
             <button id="play-btn" class="primary-btn" type="button">PLAY</button>
             <button id="how-to-play-btn" class="secondary-btn" type="button">HOW TO PLAY</button>
@@ -54,7 +54,7 @@
             </div>
           </div>
 
-          <div id="field-container" class="field-container" role="group" aria-label="Football field play area. Swipe upward from the football to kick.">
+          <div id="field-container" class="field-container" role="group" aria-label="Straight-ahead football field goal play area.">
             <div class="field-sky" aria-hidden="true"></div>
             <div class="mountain mountain-back" aria-hidden="true"></div>
             <div class="mountain mountain-front" aria-hidden="true"></div>
@@ -78,14 +78,27 @@
               <span class="wind-arrow"></span>
             </div>
             <div id="bonus-item" class="bonus-item hidden" aria-live="polite">🥨</div>
-            <div id="football" class="football" role="button" tabindex="0" aria-label="Football. Swipe upward to kick or press Space, Enter, or the up arrow.">
-              <span class="laces"></span>
+            <div id="football" class="football" role="button" tabindex="0" aria-label="Football. Swipe upward to kick, or press Space or Enter to kick using the selected controls.">
+              <span class="laces" aria-hidden="true"></span>
             </div>
-            <div id="kick-instructions" class="kick-instructions">SWIPE UP TO KICK</div>
+            <div id="kick-instructions" class="kick-instructions">SET YOUR KICK BELOW</div>
             <div id="result-banner" class="result-banner hidden" aria-live="assertive"></div>
           </div>
 
           <div class="play-actions">
+            <div id="kick-controls" class="kick-controls" aria-label="Kick controls">
+              <label class="kick-control" for="power-control">
+                <span class="control-heading">POWER <output id="power-value" for="power-control">68%</output></span>
+                <input id="power-control" type="range" min="0" max="100" value="68" step="1" aria-label="Kick power, 68 percent" />
+                <span class="control-scale"><span>SOFT</span><span>FULL</span></span>
+              </label>
+              <label class="kick-control" for="aim-control">
+                <span class="control-heading">AIM <output id="aim-value" for="aim-control">CENTER</output></span>
+                <input id="aim-control" type="range" min="-12" max="12" value="0" step="1" aria-label="Horizontal aim, centered" />
+                <span class="control-scale"><span>LEFT</span><span>CENTER</span><span>RIGHT</span></span>
+              </label>
+              <button id="kick-btn" class="primary-btn kick-btn" type="button">KICK</button>
+            </div>
             <button id="next-kick-btn" class="primary-btn" type="button" hidden>NEXT KICK</button>
           </div>
         </section>
@@ -129,8 +142,7 @@
       <div class="modal-panel">
         <h2 id="how-to-play-title">HOW TO PLAY</h2>
         <p class="modal-copy">
-          Swipe up to kick. Send the football through the uprights to score 3 points. Watch the wind and aim carefully.
-          Hit specialty food bonuses for extra Fancy Points. That's it. Have fun.
+          Set your power and horizontal aim, then tap KICK. Or swipe up on the football to kick. Send it through the uprights to score 3 points, watch the wind, and hit specialty food bonuses for extra Fancy Points. That's it. Have fun.
         </p>
         <button id="close-how-to-play" class="primary-btn" type="button">LET'S PLAY</button>
       </div>

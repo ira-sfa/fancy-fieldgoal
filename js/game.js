@@ -3,21 +3,22 @@ const CONFIG = {
   pointsPerFieldGoal: 3,
   foodBonusPoints: 100,
   enableFoodBonuses: true,
-  goalX: 78,
+  goalX: 50,
   goalY: 34,
   bonusChance: 0.72,
   windMax: 12,
-  distanceScale: 0.5,
-  minimumSwipePixels: 24,
   maximumSwipePixels: 120,
-  minimumFlightDistance: 30,
-  maximumFlightDistance: 70,
-  maximumHorizontalAim: 20,
-  windInfluence: 0.3,
+  minimumGoalPower: 48,
+  maximumGoalPower: 84,
+  powerForCenteredGoal: 68,
+  horizontalAimScale: 0.55,
+  windInfluence: 0.35,
+  distanceBaseYards: 18,
+  distancePerPower: 0.35,
+  powerHeightScale: 0.24,
   flightDuration: 900,
   arcHeight: 24,
-  keyboardSwipePixels: 84,
-  ballSpawnX: 20,
+  ballSpawnX: 50,
   ballSpawnY: 76,
   playerBestKey: 'wff-field-goal-best-score',
   gamesPlayedKey: 'wff-field-goal-games-played'
@@ -50,6 +51,13 @@ const elements = {
   windValue: document.getElementById('wind-value'),
   fieldContainer: document.getElementById('field-container'),
   football: document.getElementById('football'),
+  powerControl: document.getElementById('power-control'),
+  powerValue: document.getElementById('power-value'),
+  aimControl: document.getElementById('aim-control'),
+  aimValue: document.getElementById('aim-value'),
+  aimArrow: document.querySelector('.field-arrow'),
+  kickControls: document.getElementById('kick-controls'),
+  kickBtn: document.getElementById('kick-btn'),
   kickInstructions: document.getElementById('kick-instructions'),
   resultBanner: document.getElementById('result-banner'),
   nextKickBtn: document.getElementById('next-kick-btn'),
@@ -113,6 +121,37 @@ function updateHud() {
   elements.windArrow.style.transform = `rotate(${state.currentWind * 7.5}deg)`;
 }
 
+function updateControlReadouts() {
+  const power = Number(elements.powerControl.value);
+  const aim = Number(elements.aimControl.value);
+  elements.powerValue.value = `${power}%`;
+  elements.powerControl.setAttribute('aria-label', `Kick power, ${power} percent`);
+  elements.aimValue.value = aim === 0 ? 'CENTER' : `${Math.abs(aim)}° ${aim < 0 ? 'LEFT' : 'RIGHT'}`;
+  elements.powerControl.style.setProperty('--range-progress', `${power}%`);
+  elements.aimControl.style.setProperty('--range-progress', `${((aim + 12) / 24) * 100}%`);
+  elements.aimArrow.style.left = `${50 + aim * 0.42}%`;
+  elements.aimControl.setAttribute(
+    'aria-label',
+    `Horizontal aim, ${aim === 0 ? 'centered' : `${Math.abs(aim)} degrees ${aim < 0 ? 'left' : 'right'}`}`
+  );
+}
+
+function setKickControlsDisabled(disabled) {
+  elements.powerControl.disabled = disabled;
+  elements.aimControl.disabled = disabled;
+  elements.kickBtn.disabled = disabled;
+}
+
+function kickWithSelectedControls() {
+  if (state.inFlight || state.resultLock) {
+    return;
+  }
+
+  const power = Number(elements.powerControl.value);
+  const aim = Number(elements.aimControl.value);
+  beginKick(0, -power, aim);
+}
+
 function updateBallPosition(xPercent, yPercent) {
   elements.football.style.left = `${xPercent}%`;
   elements.football.style.top = `${yPercent}%`;
@@ -121,6 +160,7 @@ function updateBallPosition(xPercent, yPercent) {
 function resetBall() {
   elements.football.classList.remove('is-kicking');
   elements.football.style.setProperty('--depth-scale', '1');
+  elements.football.style.removeProperty('transform');
   updateBallPosition(CONFIG.ballSpawnX, CONFIG.ballSpawnY);
 }
 
@@ -136,12 +176,12 @@ function buildBonus() {
   }
 
   const items = [
-    { label: 'CHEESE BONUS!', emoji: '🧀', x: 60, y: 27 },
-    { label: 'PRETZEL BONUS!', emoji: '🥨', x: 62, y: 28 },
-    { label: 'POPCORN BONUS!', emoji: '🍿', x: 58, y: 28 },
-    { label: 'COOKIE BONUS!', emoji: '🍪', x: 63, y: 29 },
-    { label: 'CHOCOLATE BONUS!', emoji: '🍫', x: 60, y: 30 },
-    { label: 'PEPPER BONUS!', emoji: '🌶️', x: 64, y: 29 }
+    { label: 'CHEESE BONUS!', emoji: '🧀', x: 45, y: 31 },
+    { label: 'PRETZEL BONUS!', emoji: '🥨', x: 55, y: 30 },
+    { label: 'POPCORN BONUS!', emoji: '🍿', x: 46, y: 31 },
+    { label: 'COOKIE BONUS!', emoji: '🍪', x: 54, y: 29 },
+    { label: 'CHOCOLATE BONUS!', emoji: '🍫', x: 45, y: 30 },
+    { label: 'PEPPER BONUS!', emoji: '🌶️', x: 55, y: 31 }
   ];
 
   const chosen = items[Math.floor(Math.random() * items.length)];
@@ -171,6 +211,11 @@ function startGame() {
   state.resultLock = false;
   state.inFlight = false;
   elements.nextKickBtn.textContent = 'NEXT KICK';
+  elements.powerControl.value = '68';
+  elements.aimControl.value = '0';
+  updateControlReadouts();
+  setKickControlsDisabled(false);
+  elements.kickControls.hidden = false;
   resetBanner();
   setWind();
   updateHud();
@@ -224,6 +269,8 @@ function prepareNextKick() {
 
   state.resultLock = false;
   state.inFlight = false;
+  setKickControlsDisabled(false);
+  elements.kickControls.hidden = false;
   resetBanner();
   elements.nextKickBtn.hidden = true;
   elements.kickInstructions.classList.remove('hidden');
@@ -283,6 +330,8 @@ function completeKick(success, distance, bonusLabel) {
   }
 
   showBanner(lines.join('\n'), success || bonusLabel ? 'success' : 'neutral');
+  setKickControlsDisabled(true);
+  elements.kickControls.hidden = true;
   if (success || bonusLabel) {
     elements.fieldContainer.classList.add('is-scoring');
     window.setTimeout(() => elements.fieldContainer.classList.remove('is-scoring'), 700);
@@ -296,45 +345,58 @@ function completeKick(success, distance, bonusLabel) {
 }
 
 function determineGoal(successX, successY) {
-  return successX >= CONFIG.goalX - 6 && successX <= CONFIG.goalX + 6 && successY >= CONFIG.goalY - 8 && successY <= CONFIG.goalY + 8;
+  const power = Number(elements.powerControl.value);
+  return (
+    successX >= CONFIG.goalX - 7 &&
+    successX <= CONFIG.goalX + 7 &&
+    successY >= CONFIG.goalY - 5 &&
+    successY <= CONFIG.goalY + 5 &&
+    power >= CONFIG.minimumGoalPower &&
+    power <= CONFIG.maximumGoalPower
+  );
 }
 
-function beginKick(vx, vy) {
+function beginKick(vx, vy, selectedAim = null) {
   if (state.inFlight || state.resultLock) {
     return;
   }
 
   state.inFlight = true;
+  setKickControlsDisabled(true);
   elements.football.classList.add('is-kicking');
   const rect = elements.fieldContainer.getBoundingClientRect();
+  const isSwipeKick = selectedAim === null;
   const upwardSwipe = Math.abs(vy);
-  const swipeStrength = clamp(
-    (upwardSwipe - CONFIG.minimumSwipePixels) /
-      (CONFIG.maximumSwipePixels - CONFIG.minimumSwipePixels),
-    0,
-    1
-  );
-  const flightDistance =
-    CONFIG.minimumFlightDistance +
-    swipeStrength * (CONFIG.maximumFlightDistance - CONFIG.minimumFlightDistance);
-  const horizontalAim = clamp(
-    (vx / Math.max(rect.width, 1)) * 100,
-    -CONFIG.maximumHorizontalAim,
-    CONFIG.maximumHorizontalAim
-  );
+  const power = isSwipeKick
+    ? Math.round(clamp((upwardSwipe / CONFIG.maximumSwipePixels) * 100, 8, 100))
+    : clamp(upwardSwipe, 0, 100);
+  const horizontalAim = isSwipeKick
+    ? Math.round(
+        clamp(
+          (vx / Math.max(rect.width, 1)) * 24,
+          Number(elements.aimControl.min),
+          Number(elements.aimControl.max)
+        )
+      )
+    : clamp(selectedAim, Number(elements.aimControl.min), Number(elements.aimControl.max));
+  elements.powerControl.value = String(power);
+  elements.aimControl.value = String(horizontalAim);
+  updateControlReadouts();
+  const targetY =
+    CONFIG.goalY - (power - CONFIG.powerForCenteredGoal) * CONFIG.powerHeightScale;
   const targetX = clamp(
     CONFIG.ballSpawnX +
-      flightDistance +
-      horizontalAim +
+      horizontalAim * CONFIG.horizontalAimScale +
       state.currentWind * CONFIG.windInfluence,
-    -10,
-    110
+    30,
+    70
   );
   const startTime = performance.now();
   const stateBall = {
     x: CONFIG.ballSpawnX,
     y: CONFIG.ballSpawnY,
-    targetX
+    targetX,
+    targetY
   };
 
   let bonusLabel = '';
@@ -344,10 +406,11 @@ function beginKick(vx, vy) {
     stateBall.x = CONFIG.ballSpawnX + (stateBall.targetX - CONFIG.ballSpawnX) * progress;
     stateBall.y =
       CONFIG.ballSpawnY +
-      (CONFIG.goalY - CONFIG.ballSpawnY) * progress -
+      (stateBall.targetY - CONFIG.ballSpawnY) * progress -
       CONFIG.arcHeight * 4 * progress * (1 - progress);
 
     elements.football.style.setProperty('--depth-scale', String(1 - progress * 0.62));
+    elements.football.style.transform = `translate(-50%, -50%) rotate(${90 + progress * 360}deg) scale(${1 - progress * 0.62})`;
 
     if (isBallWithinBonus(stateBall.x, stateBall.y)) {
       bonusLabel = markBonusCollected() || bonusLabel;
@@ -359,7 +422,7 @@ function beginKick(vx, vy) {
       const success = determineGoal(stateBall.x, stateBall.y);
       const distance = Math.max(
         8,
-        Math.round(Math.abs(stateBall.x - CONFIG.ballSpawnX) * CONFIG.distanceScale)
+        Math.round(CONFIG.distanceBaseYards + power * CONFIG.distancePerPower)
       );
       state.longest = Math.max(state.longest, distance);
       state.inFlight = false;
@@ -371,7 +434,7 @@ function beginKick(vx, vy) {
     if (stateBall.y > 94) {
       const distance = Math.max(
         8,
-        Math.round(Math.abs(stateBall.x - CONFIG.ballSpawnX) * CONFIG.distanceScale)
+        Math.round(CONFIG.distanceBaseYards + power * CONFIG.distancePerPower)
       );
       state.inFlight = false;
       elements.football.classList.remove('is-kicking');
@@ -390,8 +453,25 @@ function kickFromGesture(deltaX, deltaY) {
     return;
   }
 
-  const upwardSwipe = Math.abs(deltaY);
-  beginKick(deltaX, -upwardSwipe);
+  const rect = elements.fieldContainer.getBoundingClientRect();
+  const power = Math.round(
+    clamp(
+      (Math.abs(deltaY) / CONFIG.maximumSwipePixels) * 100,
+      8,
+      100
+    )
+  );
+  const aim = Math.round(
+    clamp(
+      (deltaX / Math.max(rect.width, 1)) * 24,
+      Number(elements.aimControl.min),
+      Number(elements.aimControl.max)
+    )
+  );
+  elements.powerControl.value = String(power);
+  elements.aimControl.value = String(aim);
+  updateControlReadouts();
+  beginKick(0, -power, aim);
 }
 
 function handlePointerDown(event) {
@@ -448,7 +528,7 @@ function handleKeyboardKick(event) {
   }
 
   event.preventDefault();
-  kickFromGesture(0, -CONFIG.keyboardSwipePixels);
+  kickWithSelectedControls();
 }
 
 function bindUI() {
@@ -472,6 +552,9 @@ function bindUI() {
     prepareNextKick();
   });
 
+  elements.powerControl.addEventListener('input', updateControlReadouts);
+  elements.aimControl.addEventListener('input', updateControlReadouts);
+  elements.kickBtn.addEventListener('click', kickWithSelectedControls);
   elements.fieldContainer.addEventListener('pointerdown', handlePointerDown);
   elements.fieldContainer.addEventListener('pointermove', handlePointerMove);
   elements.fieldContainer.addEventListener('pointerup', handlePointerUp);
@@ -482,4 +565,5 @@ function bindUI() {
 bindUI();
 showScreen('start');
 resetBall();
+updateControlReadouts();
 updateHud();

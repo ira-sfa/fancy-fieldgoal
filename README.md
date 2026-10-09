@@ -2,6 +2,8 @@
 
 A lightweight HTML/CSS/JavaScript field-goal kicking prototype for Winter FancyFaire*.
 
+Players can set kick power and horizontal aim with the accessible sliders and kick button, or swipe up on the football. A centered kick aims straight at the uprights; power changes the kick's distance and height, while horizontal aim and wind influence its path.
+
 ## Project structure
 
 - `index.html` – game start screen and playable game UI
