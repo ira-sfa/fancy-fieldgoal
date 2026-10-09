@@ -31,7 +31,9 @@
           <p class="eyebrow">Winter FancyFaire* GAME</p>
           <h1 id="intro-title">Fancy<br />Field Goal</h1>
           <p class="subhead">How many can you make?</p>
-          <p class="description">Set your power and aim, then time your kick as the challenge gets tougher. Hit specialty food bonuses for extra points.</p>
+          <p class="description">
+            Tap KICK when the windblown target crosses the uprights. The target gets quicker with every kick!
+          </p>
           <div class="cta-group">
             <button id="play-btn" class="primary-btn" type="button">PLAY</button>
             <button id="how-to-play-btn" class="secondary-btn" type="button">HOW TO PLAY</button>
@@ -66,13 +68,15 @@
               <span class="yard-lines"></span>
               <span class="yard-hash yard-hash-left"></span>
               <span class="yard-hash yard-hash-right"></span>
-              <span class="field-arrow"></span>
             </div>
             <div class="goal-posts" aria-hidden="true">
               <span class="goal-upright goal-upright-left"></span>
               <span class="goal-upright goal-upright-right"></span>
               <span class="goal-crossbar"></span>
               <span class="goal-support"></span>
+            </div>
+            <div id="aim-target" class="aim-target" aria-hidden="true">
+              <span class="aim-target-center"></span>
             </div>
             <div id="wind-indicator" class="wind-indicator" aria-hidden="true">
               <span class="wind-arrow"></span>
@@ -83,40 +87,16 @@
               class="football"
               src="./assets/football.png"
               alt=""
-              role="button"
-              tabindex="0"
-              aria-label="Football. Swipe upward once to set power and aim and start the meter, then swipe again to kick when the needle reaches the target."
               draggable="false"
             />
-            <div id="kick-instructions" class="kick-instructions">SET YOUR KICK BELOW</div>
+            <div id="kick-instructions" class="kick-instructions">
+              TAP KICK WHEN THE TARGET CROSSES THE UPRIGHTS
+            </div>
             <div id="result-banner" class="result-banner hidden" aria-live="assertive"></div>
           </div>
 
           <div class="play-actions">
-            <div id="kick-controls" class="kick-controls" aria-label="Kick controls">
-              <label class="kick-control" for="power-control">
-                <span class="control-heading">TARGET POWER <output id="power-value" for="power-control">68%</output></span>
-                <input id="power-control" type="range" min="0" max="100" value="68" step="1" aria-label="Target kick power, 68 percent" />
-                <span class="control-scale"><span>SOFT</span><span>FULL</span></span>
-              </label>
-              <label class="kick-control" for="aim-control">
-                <span class="control-heading">AIM <output id="aim-value" for="aim-control">CENTER</output></span>
-                <input id="aim-control" type="range" min="-12" max="12" value="0" step="1" aria-label="Horizontal aim, centered" />
-                <span class="control-scale"><span>LEFT</span><span>CENTER</span><span>RIGHT</span></span>
-              </label>
-              <div class="power-meter-block">
-                <div class="power-meter-heading">
-                  <span id="power-meter-heading">KICK 1 · TIMING</span>
-                  <output id="power-meter-value" aria-hidden="true">0%</output>
-                </div>
-                <div id="power-meter" class="power-meter" role="meter" tabindex="0" aria-label="Power timing meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Power timing meter. Watch the moving marker.">
-                  <span id="power-meter-target" class="power-meter-target" aria-hidden="true"></span>
-                  <span id="power-meter-needle" class="power-meter-needle" aria-hidden="true"></span>
-                </div>
-                <p id="power-meter-hint" class="power-meter-hint">Set power and aim, then press START METER.</p>
-              </div>
-              <button id="kick-btn" class="primary-btn kick-btn" type="button" aria-describedby="power-meter-hint">START METER</button>
-            </div>
+            <button id="kick-btn" class="primary-btn kick-btn" type="button">KICK</button>
             <button id="next-kick-btn" class="primary-btn" type="button" hidden>NEXT KICK</button>
           </div>
         </section>
@@ -160,7 +140,8 @@
       <div class="modal-panel">
         <h2 id="how-to-play-title">HOW TO PLAY</h2>
         <p class="modal-copy">
-          Set your target power and horizontal aim, then press START METER. Tap KICK when the moving marker enters the highlighted zone. The zone narrows and the wind gets stronger with each kick. You can also swipe up on the football to set your power and aim, then swipe again to kick when the marker reaches the zone. Perfectly timed field goals earn bonus points.
+          One control: tap KICK when the moving target is centered between the uprights. The wind pushes the target,
+          and it moves faster as you make more kicks. A bullseye earns bonus points.
         </p>
         <button id="close-how-to-play" class="primary-btn" type="button">LET'S PLAY</button>
       </div>

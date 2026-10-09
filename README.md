@@ -2,7 +2,7 @@
 
 A lightweight HTML/CSS/JavaScript field-goal kicking prototype for Winter FancyFaire*.
 
-Players set target power and horizontal aim with the accessible sliders, press **START METER**, then tap **KICK** as the moving meter enters the highlighted zone. The timing window tightens and the wind strengthens with each kick; perfect-timed field goals earn bonus points. Players can also swipe up on the football once to set power and aim and start the meter, then swipe again to kick. A centered kick aims straight at the uprights, while power, horizontal aim, and wind influence its path.
+Players use one control: tap **KICK** when the moving target crosses the uprights. The target's sweep is pushed by the wind, speeds up as the three-kick round progresses, and becomes harder to hit as the scoring window narrows. A bullseye earns bonus points, and collecting a food item during the kick adds extra points.
 
 ## Project structure
 
@@ -10,7 +10,7 @@ Players set target power and horizontal aim with the accessible sliders, press *
 - `admin.html` – demo-only admin dashboard for prototype analytics
 - `css/styles.css` – game styling and responsive layout
 - `css/admin.css` – dashboard styling
-- `js/game.js` – gameplay logic, touch/mouse gestures, scores, and local state
+- `js/game.js` – one-button gameplay, moving aim target, scoring, and local state
 - `js/demo-data.js` – demo analytics data for the admin page
 - `js/analytics.js` – dashboard rendering
 - `assets/football.png` – transparent, detailed football graphic used during play

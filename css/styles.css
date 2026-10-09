@@ -459,17 +459,61 @@ a:focus-visible {
 .yard-hash-left { left: 24%; }
 .yard-hash-right { right: 24%; }
 
-.field-arrow {
+.aim-target {
   position: absolute;
+  z-index: 9;
+  top: 25%;
   left: 50%;
-  top: 38%;
-  width: 0;
-  height: 0;
-  border-right: 10px solid transparent;
-  border-bottom: 18px solid rgba(248, 252, 255, 0.8);
-  border-left: 10px solid transparent;
-  transform: translateX(-50%);
-  filter: drop-shadow(0 1px 1px rgba(31, 69, 80, 0.3));
+  width: var(--aim-target-size, 58px);
+  height: var(--aim-target-size, 58px);
+  border: 2px dashed rgba(255, 255, 255, 0.96);
+  border-radius: 50%;
+  background: rgba(34, 54, 78, 0.18);
+  box-shadow: 0 0 12px rgba(20, 34, 50, 0.65), inset 0 0 8px rgba(20, 34, 50, 0.24);
+  transform: translate(-50%, -50%);
+  transition: width 180ms ease, height 180ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  pointer-events: none;
+}
+
+.aim-target::before,
+.aim-target::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  content: '';
+  transform: translate(-50%, -50%);
+}
+
+.aim-target::before {
+  width: 145%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.aim-target::after {
+  width: 1px;
+  height: 145%;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.aim-target-center {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: #f4bd62;
+  box-shadow: 0 0 5px rgba(20, 34, 50, 0.8);
+  transform: translate(-50%, -50%);
+}
+
+.aim-target.is-aligned {
+  border-color: #a8f0c4;
+  background: rgba(70, 174, 120, 0.22);
+  box-shadow: 0 0 18px rgba(101, 244, 165, 0.9), inset 0 0 10px rgba(101, 244, 165, 0.35);
 }
 
 .mountain {
@@ -549,20 +593,10 @@ a:focus-visible {
   filter: drop-shadow(0 7px 6px rgba(15, 21, 25, 0.3));
   transform: translate(-50%, -50%);
   transition: transform 180ms ease;
-  touch-action: none;
+  pointer-events: none;
   z-index: 10;
-  cursor: grab;
   user-select: none;
   -webkit-user-drag: none;
-}
-
-.football.is-kicking {
-  cursor: grabbing;
-}
-
-.football:focus-visible {
-  outline: 4px solid rgba(120, 168, 255, 0.95);
-  outline-offset: 5px;
 }
 
 .kick-instructions {
@@ -621,188 +655,24 @@ a:focus-visible {
 
 .play-actions {
   display: block;
-  margin-top: 12px;
-}
-
-.kick-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px 18px;
   max-width: 600px;
-  margin: 0 auto;
-  padding: 16px 18px;
-  border: 1px solid rgba(60, 68, 91, 0.12);
-  border-radius: 20px;
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.94), rgba(233, 233, 245, 0.92));
-  box-shadow: 0 7px 18px rgba(37, 49, 74, 0.1);
-}
-
-.kick-control {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.control-heading,
-.control-scale {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-}
-
-.control-heading {
-  color: #393250;
-  font-size: 0.73rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.control-heading output {
-  color: #67558a;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-}
-
-.kick-control input[type='range'] {
-  width: 100%;
-  height: 8px;
-  margin: 2px 0;
-  border-radius: 999px;
-  appearance: none;
-  background: linear-gradient(
-    90deg,
-    #745991 0 var(--range-progress, 50%),
-    #d9dce7 var(--range-progress, 50%) 100%
-  );
-  accent-color: #755991;
-  cursor: pointer;
-}
-
-.kick-control input[type='range']::-webkit-slider-thumb {
-  width: 20px;
-  height: 20px;
-  appearance: none;
-  border: 3px solid #fff;
-  border-radius: 50%;
-  background: #685183;
-  box-shadow: 0 2px 6px rgba(37, 34, 54, 0.28);
-}
-
-.kick-control input[type='range']::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border: 3px solid #fff;
-  border-radius: 50%;
-  background: #685183;
-  box-shadow: 0 2px 6px rgba(37, 34, 54, 0.28);
-}
-
-.kick-control input[type='range']:focus-visible {
-  outline: 3px solid rgba(120, 168, 255, 0.9);
-  outline-offset: 5px;
-}
-
-.power-meter-block {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.power-meter-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  color: #393250;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-}
-
-.power-meter-heading output {
-  color: #67558a;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-}
-
-.power-meter {
-  position: relative;
-  height: 16px;
-  overflow: visible;
-  border: 1px solid rgba(60, 68, 91, 0.22);
-  border-radius: 999px;
-  background: linear-gradient(90deg, #d9dce7, #f0edf5 50%, #d9dce7);
-  box-shadow: inset 0 2px 4px rgba(37, 34, 54, 0.12);
-  cursor: crosshair;
-}
-
-.power-meter:focus-visible {
-  outline: 3px solid rgba(120, 168, 255, 0.9);
-  outline-offset: 4px;
-}
-
-.power-meter-target {
-  position: absolute;
-  top: 1px;
-  bottom: 1px;
-  border: 1px solid rgba(48, 111, 94, 0.55);
-  border-radius: 999px;
-  background: linear-gradient(180deg, #a8ddbf, #69b792);
-  box-shadow: 0 0 10px rgba(87, 176, 137, 0.56);
-  pointer-events: none;
-}
-
-.power-meter-needle {
-  position: absolute;
-  z-index: 1;
-  top: -5px;
-  bottom: -5px;
-  width: 4px;
-  border: 1px solid #fff;
-  border-radius: 999px;
-  background: #393250;
-  box-shadow: 0 1px 5px rgba(24, 25, 38, 0.42);
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-
-.power-meter.is-hit .power-meter-needle {
-  background: #247b5b;
-}
-
-.power-meter.is-miss .power-meter-needle {
-  background: #aa4d42;
-}
-
-.power-meter-hint {
-  margin: 0;
-  color: var(--slate);
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1.4;
-  text-align: center;
-}
-
-.control-scale {
-  color: var(--slate);
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  margin: 12px auto 0;
 }
 
 .kick-btn {
-  grid-column: 1 / -1;
   width: 100%;
-  min-height: 48px;
+  min-height: 58px;
+  font-size: 1.08rem;
+  letter-spacing: 0.18em;
 }
 
-.kick-control input:disabled,
 .kick-btn:disabled {
   cursor: not-allowed;
   opacity: 0.58;
+}
+
+.play-actions > .primary-btn:not(.kick-btn) {
+  width: 100%;
 }
 
 .final-score {
@@ -918,9 +788,11 @@ a:focus-visible {
     aspect-ratio: 4 / 5;
   }
 
-  .kick-controls {
-    gap: 12px;
-    padding: 14px;
+  .kick-instructions {
+    width: calc(100% - 22px);
+    text-align: center;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
   }
 
   .primary-btn,
