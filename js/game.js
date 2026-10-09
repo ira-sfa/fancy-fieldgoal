@@ -1,6 +1,7 @@
 const CONFIG = {
   startingKicks: 3,
   pointsPerFieldGoal: 3,
+  perfectTimingBonusPoints: 5,
   foodBonusPoints: 100,
   enableFoodBonuses: true,
   goalX: 50,
@@ -8,7 +9,9 @@ const CONFIG = {
   goalWindowTopY: 17,
   goalWindowBottomY: 32.5,
   bonusChance: 0.72,
-  windMax: 12,
+  windMaxByKick: [6, 9, 12],
+  powerTimingToleranceByKick: [16, 11, 7],
+  powerMeterSpeedByKick: [56, 72, 88],
   maximumSwipePixels: 120,
   powerForCenteredGoal: 68,
   horizontalAimScale: 0.55,
@@ -33,6 +36,13 @@ const state = {
   currentWind: 0,
   inFlight: false,
   activeBonus: null,
+  powerMeterValue: 0,
+  powerMeterDirection: 1,
+  powerMeterLastFrame: 0,
+  powerMeterFrame: null,
+  powerMeterRunning: false,
+  powerMeterArmed: false,
+  lastPowerMeterReadout: -1,
   personalBest: getStoredValue(CONFIG.playerBestKey, 0),
   gamesPlayed: getStoredValue(CONFIG.gamesPlayedKey, 0),
   resultLock: false
@@ -53,6 +63,12 @@ const elements = {
   football: document.getElementById('football'),
   powerControl: document.getElementById('power-control'),
   powerValue: document.getElementById('power-value'),
+  powerMeter: document.getElementById('power-meter'),
+  powerMeterTarget: document.getElementById('power-meter-target'),
+  powerMeterNeedle: document.getElementById('power-meter-needle'),
+  powerMeterValue: document.getElementById('power-meter-value'),
+  powerMeterHeading: document.getElementById('power-meter-heading'),
+  powerMeterHint: document.getElementById('power-meter-hint'),
   aimControl: document.getElementById('aim-control'),
   aimValue: document.getElementById('aim-value'),
   aimArrow: document.querySelector('.field-arrow'),
@@ -125,7 +141,7 @@ function updateControlReadouts() {
   const power = Number(elements.powerControl.value);
   const aim = Number(elements.aimControl.value);
   elements.powerValue.value = `${power}%`;
-  elements.powerControl.setAttribute('aria-label', `Kick power, ${power} percent`);
+  elements.powerControl.setAttribute('aria-label', `Target kick power, ${power} percent`);
   elements.aimValue.value = aim === 0 ? 'CENTER' : `${Math.abs(aim)}° ${aim < 0 ? 'LEFT' : 'RIGHT'}`;
   elements.powerControl.style.setProperty('--range-progress', `${power}%`);
   elements.aimControl.style.setProperty('--range-progress', `${((aim + 12) / 24) * 100}%`);
@@ -134,6 +150,101 @@ function updateControlReadouts() {
     'aria-label',
     `Horizontal aim, ${aim === 0 ? 'centered' : `${Math.abs(aim)} degrees ${aim < 0 ? 'left' : 'right'}`}`
   );
+  updatePowerMeterTarget();
+}
+
+function getKickDifficultyValue(values) {
+  return values[Math.min(state.totalKicksTaken, values.length - 1)];
+}
+
+function updatePowerMeterTarget() {
+  const targetPower = Number(elements.powerControl.value);
+  const tolerance = getKickDifficultyValue(CONFIG.powerTimingToleranceByKick);
+  const targetStart = clamp(targetPower - tolerance, 0, 100);
+  const targetEnd = clamp(targetPower + tolerance, 0, 100);
+
+  elements.powerMeterTarget.style.left = `${targetStart}%`;
+  elements.powerMeterTarget.style.width = `${targetEnd - targetStart}%`;
+  elements.powerMeterHeading.textContent = `KICK ${state.totalKicksTaken + 1} · ±${tolerance}% WINDOW`;
+  elements.powerMeterHint.textContent = state.powerMeterArmed
+    ? `Tap KICK when the needle enters the highlighted ±${tolerance}% zone.`
+    : 'Set power and aim, then press START METER.';
+  elements.powerMeter.setAttribute(
+    'aria-valuetext',
+    `Moving power ${Math.round(state.powerMeterValue)} percent. Target ${targetPower} percent, plus or minus ${tolerance} percent.`
+  );
+}
+
+function updatePowerMeterReadout() {
+  const power = Math.round(state.powerMeterValue);
+  const tolerance = getKickDifficultyValue(CONFIG.powerTimingToleranceByKick);
+  elements.powerMeterValue.textContent = `${power}%`;
+  elements.powerMeter.setAttribute('aria-valuenow', String(power));
+  elements.powerMeter.setAttribute(
+    'aria-valuetext',
+    `Moving power ${power} percent. Target ${elements.powerControl.value} percent, plus or minus ${tolerance} percent.`
+  );
+  state.lastPowerMeterReadout = power;
+}
+
+function animatePowerMeter(timestamp) {
+  if (!state.powerMeterRunning) {
+    return;
+  }
+
+  if (state.powerMeterLastFrame) {
+    const elapsed = Math.min((timestamp - state.powerMeterLastFrame) / 1000, 0.08);
+    const speed = getKickDifficultyValue(CONFIG.powerMeterSpeedByKick);
+    state.powerMeterValue += state.powerMeterDirection * speed * elapsed;
+
+    if (state.powerMeterValue >= 100 || state.powerMeterValue <= 0) {
+      state.powerMeterValue = clamp(state.powerMeterValue, 0, 100);
+      state.powerMeterDirection *= -1;
+    }
+  }
+
+  state.powerMeterLastFrame = timestamp;
+  const roundedPower = Math.round(state.powerMeterValue);
+  elements.powerMeterNeedle.style.left = `${state.powerMeterValue}%`;
+
+  if (roundedPower !== state.lastPowerMeterReadout) {
+    updatePowerMeterReadout();
+  }
+
+  state.powerMeterFrame = window.requestAnimationFrame(animatePowerMeter);
+}
+
+function startPowerMeter() {
+  if (state.powerMeterArmed || state.inFlight || state.resultLock) {
+    return;
+  }
+
+  const targetPower = Number(elements.powerControl.value);
+  state.powerMeterArmed = true;
+  state.powerMeterDirection = targetPower >= 50 ? 1 : -1;
+  state.powerMeterValue = targetPower >= 50 ? 0 : 100;
+  state.powerMeterRunning = true;
+  state.powerMeterLastFrame = 0;
+  state.lastPowerMeterReadout = -1;
+  elements.powerControl.disabled = true;
+  elements.aimControl.disabled = true;
+  elements.kickBtn.disabled = false;
+  elements.kickBtn.textContent = 'KICK';
+  elements.powerMeter.classList.remove('is-hit', 'is-miss');
+  updatePowerMeterTarget();
+  elements.powerMeterNeedle.style.left = `${state.powerMeterValue}%`;
+  updatePowerMeterReadout();
+  state.powerMeterFrame = window.requestAnimationFrame(animatePowerMeter);
+}
+
+function stopPowerMeter() {
+  state.powerMeterRunning = false;
+  state.powerMeterLastFrame = 0;
+
+  if (state.powerMeterFrame !== null) {
+    window.cancelAnimationFrame(state.powerMeterFrame);
+    state.powerMeterFrame = null;
+  }
 }
 
 function setKickControlsDisabled(disabled) {
@@ -147,9 +258,13 @@ function kickWithSelectedControls() {
     return;
   }
 
-  const power = Number(elements.powerControl.value);
+  if (!state.powerMeterArmed) {
+    startPowerMeter();
+    return;
+  }
+
   const aim = Number(elements.aimControl.value);
-  beginKick(0, -power, aim);
+  beginKick(aim);
 }
 
 function updateBallPosition(xPercent, yPercent) {
@@ -198,11 +313,12 @@ function buildBonus() {
 
 function setWind() {
   const direction = Math.random() < 0.5 ? -1 : 1;
-  const base = randomBetween(2, CONFIG.windMax);
+  const base = randomBetween(2, getKickDifficultyValue(CONFIG.windMaxByKick));
   state.currentWind = Number((direction * base).toFixed(1));
 }
 
 function startGame() {
+  stopPowerMeter();
   state.score = 0;
   state.kicksLeft = CONFIG.startingKicks;
   state.totalKicksTaken = 0;
@@ -210,10 +326,16 @@ function startGame() {
   state.longest = 0;
   state.resultLock = false;
   state.inFlight = false;
+  state.powerMeterArmed = false;
+  state.powerMeterValue = randomBetween(10, 90);
+  state.powerMeterDirection = 1;
+  state.lastPowerMeterReadout = -1;
   elements.nextKickBtn.textContent = 'NEXT KICK';
+  elements.kickBtn.textContent = 'START METER';
   elements.powerControl.value = '68';
   elements.aimControl.value = '0';
   updateControlReadouts();
+  updatePowerMeterReadout();
   setKickControlsDisabled(false);
   elements.kickControls.hidden = false;
   resetBanner();
@@ -224,6 +346,8 @@ function startGame() {
   showScreen('game');
   elements.kickInstructions.classList.remove('hidden');
   elements.nextKickBtn.hidden = true;
+  elements.powerMeter.classList.remove('is-hit', 'is-miss');
+  elements.powerMeterNeedle.style.left = `${state.powerMeterValue}%`;
 }
 
 function showBanner(message, variant = 'neutral') {
@@ -243,6 +367,7 @@ function revealNextKick() {
 }
 
 function endGame() {
+  stopPowerMeter();
   state.gamesPlayed += 1;
   setStoredValue(CONFIG.gamesPlayedKey, state.gamesPlayed);
 
@@ -269,15 +394,24 @@ function prepareNextKick() {
 
   state.resultLock = false;
   state.inFlight = false;
+  state.powerMeterArmed = false;
+  state.powerMeterValue = randomBetween(10, 90);
+  state.powerMeterDirection = 1;
+  state.lastPowerMeterReadout = -1;
   setKickControlsDisabled(false);
+  elements.kickBtn.textContent = 'START METER';
   elements.kickControls.hidden = false;
   resetBanner();
   elements.nextKickBtn.hidden = true;
   elements.kickInstructions.classList.remove('hidden');
   setWind();
+  updateControlReadouts();
+  updatePowerMeterReadout();
   updateHud();
   resetBall();
   buildBonus();
+  elements.powerMeter.classList.remove('is-hit', 'is-miss');
+  elements.powerMeterNeedle.style.left = `${state.powerMeterValue}%`;
 }
 
 function isBallWithinBonus(x, y) {
@@ -302,7 +436,7 @@ function markBonusCollected() {
   return state.activeBonus.label;
 }
 
-function completeKick(success, distance, bonusLabel) {
+function completeKick(success, distance, bonusLabel, timingQuality, powerTooHigh) {
   if (state.resultLock) {
     return;
   }
@@ -319,8 +453,24 @@ function completeKick(success, distance, bonusLabel) {
     lines.push(`IT'S GOOD!`);
     lines.push(`+${CONFIG.pointsPerFieldGoal} POINTS`);
     lines.push(`${distance} YARDS`);
+
+    if (timingQuality === 'perfect') {
+      state.score += CONFIG.perfectTimingBonusPoints;
+      lines.push(`+${CONFIG.perfectTimingBonusPoints} PERFECT TIMING BONUS`);
+    } else if (timingQuality === 'great') {
+      lines.push('GREAT TIMING!');
+    } else {
+      lines.push(powerTooHigh ? 'POWER HIGH' : 'POWER LOW');
+    }
   } else {
     lines.push('NO GOOD');
+    if (timingQuality === 'miss') {
+      lines.push(powerTooHigh ? 'TOO MUCH POWER' : 'NOT ENOUGH POWER');
+    } else if (timingQuality === 'perfect') {
+      lines.push('PERFECT TIMING!');
+    } else if (timingQuality === 'great') {
+      lines.push('GREAT TIMING!');
+    }
     lines.push(`${distance} YARDS`);
   }
 
@@ -353,32 +503,35 @@ function determineGoal(successX, successY) {
   );
 }
 
-function beginKick(vx, vy, selectedAim = null) {
-  if (state.inFlight || state.resultLock) {
+function beginKick(selectedAim = null) {
+  if (state.inFlight || state.resultLock || !state.powerMeterArmed) {
     return;
   }
 
+  const targetPower = Number(elements.powerControl.value);
+  const power = Math.round(state.powerMeterValue);
+  const powerDifference = power - targetPower;
+  const tolerance = getKickDifficultyValue(CONFIG.powerTimingToleranceByKick);
+  const timingQuality =
+    Math.abs(powerDifference) <= Math.max(2, tolerance * 0.3)
+      ? 'perfect'
+      : Math.abs(powerDifference) <= tolerance
+        ? 'great'
+        : 'miss';
+  const powerTooHigh = powerDifference > 0;
+  const horizontalAim =
+    selectedAim === null
+      ? Number(elements.aimControl.value)
+      : clamp(selectedAim, Number(elements.aimControl.min), Number(elements.aimControl.max));
+
   state.inFlight = true;
+  stopPowerMeter();
   setKickControlsDisabled(true);
   elements.football.classList.add('is-kicking');
-  const rect = elements.fieldContainer.getBoundingClientRect();
-  const isSwipeKick = selectedAim === null;
-  const upwardSwipe = Math.abs(vy);
-  const power = isSwipeKick
-    ? Math.round(clamp((upwardSwipe / CONFIG.maximumSwipePixels) * 100, 8, 100))
-    : clamp(upwardSwipe, 0, 100);
-  const horizontalAim = isSwipeKick
-    ? Math.round(
-        clamp(
-          (vx / Math.max(rect.width, 1)) * 24,
-          Number(elements.aimControl.min),
-          Number(elements.aimControl.max)
-        )
-      )
-    : clamp(selectedAim, Number(elements.aimControl.min), Number(elements.aimControl.max));
-  elements.powerControl.value = String(power);
   elements.aimControl.value = String(horizontalAim);
   updateControlReadouts();
+  elements.powerMeter.classList.toggle('is-hit', timingQuality !== 'miss');
+  elements.powerMeter.classList.toggle('is-miss', timingQuality === 'miss');
   const targetY =
     CONFIG.goalY - (power - CONFIG.powerForCenteredGoal) * CONFIG.powerHeightScale;
   const targetX = clamp(
@@ -424,7 +577,7 @@ function beginKick(vx, vy, selectedAim = null) {
       state.longest = Math.max(state.longest, distance);
       state.inFlight = false;
       elements.football.classList.remove('is-kicking');
-      completeKick(success, distance, bonusLabel);
+      completeKick(success, distance, bonusLabel, timingQuality, powerTooHigh);
       return;
     }
 
@@ -435,7 +588,7 @@ function beginKick(vx, vy, selectedAim = null) {
       );
       state.inFlight = false;
       elements.football.classList.remove('is-kicking');
-      completeKick(false, distance, bonusLabel);
+      completeKick(false, distance, bonusLabel, timingQuality, powerTooHigh);
       return;
     }
 
@@ -447,6 +600,11 @@ function beginKick(vx, vy, selectedAim = null) {
 
 function kickFromGesture(deltaX, deltaY) {
   if (deltaY >= -18) {
+    return;
+  }
+
+  if (state.powerMeterArmed) {
+    beginKick(Number(elements.aimControl.value));
     return;
   }
 
@@ -468,7 +626,7 @@ function kickFromGesture(deltaX, deltaY) {
   elements.powerControl.value = String(power);
   elements.aimControl.value = String(aim);
   updateControlReadouts();
-  beginKick(0, -power, aim);
+  startPowerMeter();
 }
 
 function handlePointerDown(event) {
@@ -552,6 +710,7 @@ function bindUI() {
   elements.powerControl.addEventListener('input', updateControlReadouts);
   elements.aimControl.addEventListener('input', updateControlReadouts);
   elements.kickBtn.addEventListener('click', kickWithSelectedControls);
+  elements.powerMeter.addEventListener('keydown', handleKeyboardKick);
   elements.fieldContainer.addEventListener('pointerdown', handlePointerDown);
   elements.fieldContainer.addEventListener('pointermove', handlePointerMove);
   elements.fieldContainer.addEventListener('pointerup', handlePointerUp);

@@ -2,7 +2,7 @@
 
 A lightweight HTML/CSS/JavaScript field-goal kicking prototype for Winter FancyFaire*.
 
-Players can set kick power and horizontal aim with the accessible sliders and kick button, or swipe up on the football. A centered kick aims straight at the uprights; power changes the kick's distance and height, while horizontal aim and wind influence its path.
+Players set target power and horizontal aim with the accessible sliders, press **START METER**, then tap **KICK** as the moving meter enters the highlighted zone. The timing window tightens and the wind strengthens with each kick; perfect-timed field goals earn bonus points. Players can also swipe up on the football once to set power and aim and start the meter, then swipe again to kick. A centered kick aims straight at the uprights, while power, horizontal aim, and wind influence its path.
 
 ## Project structure
 

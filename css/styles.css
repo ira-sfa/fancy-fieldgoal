@@ -737,6 +737,89 @@ a:focus-visible {
   outline-offset: 5px;
 }
 
+.power-meter-block {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.power-meter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #393250;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.power-meter-heading output {
+  color: #67558a;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.power-meter {
+  position: relative;
+  height: 16px;
+  overflow: visible;
+  border: 1px solid rgba(60, 68, 91, 0.22);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d9dce7, #f0edf5 50%, #d9dce7);
+  box-shadow: inset 0 2px 4px rgba(37, 34, 54, 0.12);
+  cursor: crosshair;
+}
+
+.power-meter:focus-visible {
+  outline: 3px solid rgba(120, 168, 255, 0.9);
+  outline-offset: 4px;
+}
+
+.power-meter-target {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  border: 1px solid rgba(48, 111, 94, 0.55);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #a8ddbf, #69b792);
+  box-shadow: 0 0 10px rgba(87, 176, 137, 0.56);
+  pointer-events: none;
+}
+
+.power-meter-needle {
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  bottom: -5px;
+  width: 4px;
+  border: 1px solid #fff;
+  border-radius: 999px;
+  background: #393250;
+  box-shadow: 0 1px 5px rgba(24, 25, 38, 0.42);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.power-meter.is-hit .power-meter-needle {
+  background: #247b5b;
+}
+
+.power-meter.is-miss .power-meter-needle {
+  background: #aa4d42;
+}
+
+.power-meter-hint {
+  margin: 0;
+  color: var(--slate);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .control-scale {
   color: var(--slate);
   font-size: 0.58rem;
