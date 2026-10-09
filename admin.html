@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fancy Field Goal Admin Dashboard</title>
+    <link rel="stylesheet" href="./css/admin.css" />
+  </head>
+  <body>
+    <div class="admin-shell">
+      <header class="admin-header">
+        <div>
+          <p class="eyebrow">WINTER FANCYFAIRE* PROTOTYPE</p>
+          <h1>Fancy Field Goal Admin</h1>
+        </div>
+        <a class="secondary-link" href="./index.html">Back to game</a>
+      </header>
+
+      <main class="dashboard" aria-live="polite">
+        <section class="overview-grid" id="overview-grid"></section>
+
+        <section class="panel chart-panel">
+          <div class="panel-header">
+            <h2>Kick Performance</h2>
+          </div>
+          <div id="kick-chart" class="bar-chart" aria-label="Kick performance chart"></div>
+        </section>
+
+        <section class="panel stacked-panel">
+          <div class="panel-header">
+            <h2>Event Snapshot</h2>
+          </div>
+          <div id="event-grid" class="event-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./js/demo-data.js"></script>
+    <script src="./js/analytics.js"></script>
+  </body>
+</html>

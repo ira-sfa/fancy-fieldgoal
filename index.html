@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Fancy Field Goal is a lightweight Winter FancyFaire* field-goal game prototype."
+    />
+    <title>Fancy Field Goal | Winter FancyFaire*</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header" aria-label="Winter FancyFaire* brand header">
+        <div class="brand-block">
+          <p class="brand-kicker">Winter FancyFaire*</p>
+        </div>
+        <div class="brand-visual" aria-hidden="true">
+          <img
+            src="./assets/reti.png"
+            alt="Reti supporting Winter FancyFaire* brand visual"
+            onerror="this.style.display='none'"
+          />
+        </div>
+      </header>
+
+      <main class="app-shell">
+        <section id="start-screen" class="panel intro-panel" aria-labelledby="intro-title">
+          <p class="eyebrow">WFF* GAME</p>
+          <h1 id="intro-title">Fancy<br />Field Goal</h1>
+          <p class="subhead">How many can you make?</p>
+          <p class="description">Kick for points and hit specialty food bonuses along the way.</p>
+          <div class="cta-group">
+            <button id="play-btn" class="primary-btn" type="button">PLAY</button>
+            <button id="how-to-play-btn" class="secondary-btn" type="button">HOW TO PLAY</button>
+          </div>
+        </section>
+
+        <section id="game-screen" class="panel game-panel" aria-live="polite" hidden>
+          <div class="score-row">
+            <div class="score-card">
+              <span class="label">SCORE</span>
+              <strong id="score-value">0</strong>
+            </div>
+            <div class="score-card">
+              <span class="label">KICKS LEFT</span>
+              <strong id="kicks-left-value">3</strong>
+            </div>
+            <div class="score-card">
+              <span class="label">WIND</span>
+              <strong id="wind-value">0</strong>
+            </div>
+          </div>
+
+          <div id="field-container" class="field-container" aria-label="Football field play area">
+            <div class="field-sky"></div>
+            <div class="mountain mountain-back" aria-hidden="true"></div>
+            <div class="mountain mountain-front" aria-hidden="true"></div>
+            <div class="field-line field-line-top" aria-hidden="true"></div>
+            <div class="goal-posts" aria-hidden="true">
+              <span class="left-post"></span>
+              <span class="right-post"></span>
+              <span class="crossbar"></span>
+              <span class="goal-arch"></span>
+            </div>
+            <div id="wind-indicator" class="wind-indicator" aria-hidden="true">
+              <span class="wind-arrow"></span>
+            </div>
+            <div id="bonus-item" class="bonus-item hidden" aria-live="polite">🥨</div>
+            <div id="football" class="football" aria-label="Football">
+              <span class="laces"></span>
+            </div>
+            <div id="kick-instructions" class="kick-instructions">SWIPE UP TO KICK</div>
+            <div id="result-banner" class="result-banner hidden" aria-live="assertive"></div>
+          </div>
+
+          <div class="play-actions">
+            <button id="next-kick-btn" class="primary-btn" type="button" hidden>NEXT KICK</button>
+          </div>
+        </section>
+
+        <section id="game-over-screen" class="panel end-panel" aria-labelledby="end-title" hidden>
+          <p class="eyebrow">GAME OVER</p>
+          <h2 id="end-title">YOUR SCORE</h2>
+          <p class="final-score" id="final-score">0</p>
+          <p id="personal-best-tag" class="personal-best hidden">NEW PERSONAL BEST!</p>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <span class="label">TOTAL KICKS</span>
+              <strong id="total-kicks-value">0</strong>
+            </div>
+            <div class="summary-card">
+              <span class="label">LONGEST</span>
+              <strong id="longest-value">0 YARDS</strong>
+            </div>
+            <div class="summary-card">
+              <span class="label">FOOD BONUSES</span>
+              <strong id="food-bonuses-value">0</strong>
+            </div>
+          </div>
+          <div class="cta-group end-cta">
+            <button id="play-again-btn" class="primary-btn" type="button">PLAY AGAIN</button>
+            <a
+              id="watch-party-btn"
+              class="secondary-btn watch-party-link"
+              href="https://events.specialtyfood.com/event/winter-fancyfaire-2027/planning/UGxhbm5pbmdfNDY2MTkxMw=="
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              WATCH PARTY INFO
+            </a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="how-to-play-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="how-to-play-title">
+      <div class="modal-panel">
+        <h2 id="how-to-play-title">HOW TO PLAY</h2>
+        <p class="modal-copy">
+          Swipe up to kick. Send the football through the uprights to score 3 points. Watch the wind and aim carefully.
+          Hit specialty food bonuses for extra Fancy Points. That's it. Have fun.
+        </p>
+        <button id="close-how-to-play" class="primary-btn" type="button">LET'S PLAY</button>
+      </div>
+    </div>
+
+    <script src="./js/game.js"></script>
+  </body>
+</html>
