@@ -13,6 +13,7 @@ Players set target power and horizontal aim with the accessible sliders, press *
 - `js/game.js` – gameplay logic, touch/mouse gestures, scores, and local state
 - `js/demo-data.js` – demo analytics data for the admin page
 - `js/analytics.js` – dashboard rendering
+- `assets/football.png` – transparent, detailed football graphic used during play
 - `assets/reti.png` – supporting brand image
 
 ## Local development

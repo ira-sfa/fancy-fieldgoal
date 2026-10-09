@@ -274,7 +274,6 @@ function updateBallPosition(xPercent, yPercent) {
 
 function resetBall() {
   elements.football.classList.remove('is-kicking');
-  elements.football.style.setProperty('--depth-scale', '1');
   elements.football.style.removeProperty('transform');
   updateBallPosition(CONFIG.ballSpawnX, CONFIG.ballSpawnY);
 }
@@ -559,8 +558,7 @@ function beginKick(selectedAim = null) {
       (stateBall.targetY - CONFIG.ballSpawnY) * progress -
       CONFIG.arcHeight * 4 * progress * (1 - progress);
 
-    elements.football.style.setProperty('--depth-scale', String(1 - progress * 0.62));
-    elements.football.style.transform = `translate(-50%, -50%) rotate(${90 + progress * 360}deg) scale(${1 - progress * 0.62})`;
+    elements.football.style.transform = `translate(-50%, -50%) rotate(${progress * 360}deg) scale(${1 - progress * 0.62})`;
 
     if (isBallWithinBonus(stateBall.x, stateBall.y)) {
       bonusLabel = markBonusCollected() || bonusLabel;
