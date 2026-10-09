@@ -28,12 +28,14 @@ Then visit:
 
 ## GitHub Pages deployment
 
-This project is designed for static deployment through GitHub Pages. Keep the relative asset references and use the repository name `wff-fancy-field-goal`.
+This project is designed for static deployment through GitHub Pages. Keep the relative asset references and use the repository name `fancy-fieldgoal`.
 
-Expected live routes after enabling GitHub Pages:
+Live routes:
 
 - https://ira-sfa.github.io/fancy-fieldgoal/
 - https://ira-sfa.github.io/fancy-fieldgoal/admin.html
+
+GitHub Pages publishes the `main` branch from the repository root.
 
 ## Notes
 

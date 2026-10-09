@@ -8,6 +8,15 @@ const CONFIG = {
   bonusChance: 0.72,
   windMax: 12,
   distanceScale: 0.5,
+  minimumSwipePixels: 24,
+  maximumSwipePixels: 120,
+  minimumFlightDistance: 30,
+  maximumFlightDistance: 70,
+  maximumHorizontalAim: 20,
+  windInfluence: 0.3,
+  flightDuration: 900,
+  arcHeight: 24,
+  keyboardSwipePixels: 84,
   ballSpawnX: 20,
   ballSpawnY: 76,
   playerBestKey: 'wff-field-goal-best-score',
@@ -57,6 +66,7 @@ const elements = {
 
 const pointerState = {
   active: false,
+  pointerId: null,
   startX: 0,
   startY: 0,
   currentX: 0,
@@ -265,7 +275,7 @@ function completeKick(success, distance, bonusLabel) {
   }
 
   if (bonusLabel) {
-    lines.push(`${bonusLabel.toUpperCase()} BONUS!`);
+    lines.push(bonusLabel.toUpperCase());
     lines.push(`+${CONFIG.foodBonusPoints} FANCY POINTS`);
   }
 
@@ -288,39 +298,71 @@ function beginKick(vx, vy) {
   }
 
   state.inFlight = true;
+  const rect = elements.fieldContainer.getBoundingClientRect();
+  const upwardSwipe = Math.abs(vy);
+  const swipeStrength = clamp(
+    (upwardSwipe - CONFIG.minimumSwipePixels) /
+      (CONFIG.maximumSwipePixels - CONFIG.minimumSwipePixels),
+    0,
+    1
+  );
+  const flightDistance =
+    CONFIG.minimumFlightDistance +
+    swipeStrength * (CONFIG.maximumFlightDistance - CONFIG.minimumFlightDistance);
+  const horizontalAim = clamp(
+    (vx / Math.max(rect.width, 1)) * 100,
+    -CONFIG.maximumHorizontalAim,
+    CONFIG.maximumHorizontalAim
+  );
+  const targetX = clamp(
+    CONFIG.ballSpawnX +
+      flightDistance +
+      horizontalAim +
+      state.currentWind * CONFIG.windInfluence,
+    -10,
+    110
+  );
+  const startTime = performance.now();
   const stateBall = {
     x: CONFIG.ballSpawnX,
     y: CONFIG.ballSpawnY,
-    vx,
-    vy,
-    gravity: 0.2
+    targetX
   };
 
   let bonusLabel = '';
 
-  function tick() {
-    stateBall.x += stateBall.vx * 0.17;
-    stateBall.y += stateBall.vy * 0.17;
-    stateBall.vy += stateBall.gravity;
+  function tick(now) {
+    const progress = clamp((now - startTime) / CONFIG.flightDuration, 0, 1);
+    stateBall.x = CONFIG.ballSpawnX + (stateBall.targetX - CONFIG.ballSpawnX) * progress;
+    stateBall.y =
+      CONFIG.ballSpawnY +
+      (CONFIG.goalY - CONFIG.ballSpawnY) * progress -
+      CONFIG.arcHeight * 4 * progress * (1 - progress);
 
     if (isBallWithinBonus(stateBall.x, stateBall.y)) {
-      bonusLabel = markBonusCollected();
+      bonusLabel = markBonusCollected() || bonusLabel;
     }
 
     updateBallPosition(stateBall.x, stateBall.y);
 
-    const goalReached = determineGoal(stateBall.x, stateBall.y);
-    const outOfBounds = stateBall.y > 94 || stateBall.x < -8 || stateBall.x > 108;
-
-    if (goalReached) {
-      const distance = Math.max(15, Math.round(Math.abs(CONFIG.goalX - CONFIG.ballSpawnX) * CONFIG.distanceScale + Math.abs(stateBall.vx) * 0.7));
+    if (progress >= 1) {
+      const success = determineGoal(stateBall.x, stateBall.y);
+      const distance = Math.max(
+        8,
+        Math.round(Math.abs(stateBall.x - CONFIG.ballSpawnX) * CONFIG.distanceScale)
+      );
       state.longest = Math.max(state.longest, distance);
-      completeKick(true, distance, bonusLabel);
+      state.inFlight = false;
+      completeKick(success, distance, bonusLabel);
       return;
     }
 
-    if (outOfBounds) {
-      const distance = Math.max(8, Math.round(Math.abs(CONFIG.goalX - CONFIG.ballSpawnX) * CONFIG.distanceScale + Math.abs(stateBall.vx) * 0.6));
+    if (stateBall.y > 94) {
+      const distance = Math.max(
+        8,
+        Math.round(Math.abs(stateBall.x - CONFIG.ballSpawnX) * CONFIG.distanceScale)
+      );
+      state.inFlight = false;
       completeKick(false, distance, bonusLabel);
       return;
     }
@@ -331,21 +373,32 @@ function beginKick(vx, vy) {
   requestAnimationFrame(tick);
 }
 
+function kickFromGesture(deltaX, deltaY) {
+  if (deltaY >= -18) {
+    return;
+  }
+
+  const upwardSwipe = Math.abs(deltaY);
+  beginKick(deltaX, -upwardSwipe);
+}
+
 function handlePointerDown(event) {
-  if (state.inFlight || state.resultLock) {
+  if (state.inFlight || state.resultLock || !event.target.closest('#football')) {
     return;
   }
 
   event.preventDefault();
   pointerState.active = true;
+  pointerState.pointerId = event.pointerId;
   pointerState.startX = event.clientX;
   pointerState.startY = event.clientY;
   pointerState.currentX = event.clientX;
   pointerState.currentY = event.clientY;
+  elements.fieldContainer.setPointerCapture(event.pointerId);
 }
 
 function handlePointerMove(event) {
-  if (!pointerState.active) {
+  if (!pointerState.active || event.pointerId !== pointerState.pointerId) {
     return;
   }
 
@@ -354,25 +407,36 @@ function handlePointerMove(event) {
   pointerState.currentY = event.clientY;
 }
 
-function handlePointerUp() {
-  if (!pointerState.active) {
+function handlePointerUp(event) {
+  if (!pointerState.active || event.pointerId !== pointerState.pointerId) {
     return;
   }
 
-  const deltaX = pointerState.currentX - pointerState.startX;
-  const deltaY = pointerState.currentY - pointerState.startY;
+  pointerState.currentX = event.clientX;
+  pointerState.currentY = event.clientY;
   pointerState.active = false;
+  pointerState.pointerId = null;
 
-  if (deltaY >= -18) {
+  kickFromGesture(
+    pointerState.currentX - pointerState.startX,
+    pointerState.currentY - pointerState.startY
+  );
+}
+
+function handlePointerCancel(event) {
+  if (event.pointerId === pointerState.pointerId) {
+    pointerState.active = false;
+    pointerState.pointerId = null;
+  }
+}
+
+function handleKeyboardKick(event) {
+  if (event.key !== ' ' && event.key !== 'Enter' && event.key !== 'ArrowUp') {
     return;
   }
 
-  const strength = clamp(Math.abs(deltaY) / 18, 0.7, 6.5);
-  const horizontal = clamp(deltaX * 0.08, -18, 18);
-  const velocityX = horizontal + state.currentWind * 0.8;
-  const velocityY = -(9 + strength * 4.2);
-
-  beginKick(velocityX, velocityY);
+  event.preventDefault();
+  kickFromGesture(0, -CONFIG.keyboardSwipePixels);
 }
 
 function bindUI() {
@@ -399,8 +463,8 @@ function bindUI() {
   elements.fieldContainer.addEventListener('pointerdown', handlePointerDown);
   elements.fieldContainer.addEventListener('pointermove', handlePointerMove);
   elements.fieldContainer.addEventListener('pointerup', handlePointerUp);
-  elements.fieldContainer.addEventListener('pointerleave', handlePointerUp);
-  elements.fieldContainer.addEventListener('pointercancel', handlePointerUp);
+  elements.fieldContainer.addEventListener('pointercancel', handlePointerCancel);
+  elements.football.addEventListener('keydown', handleKeyboardKick);
 }
 
 bindUI();
