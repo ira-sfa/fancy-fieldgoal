@@ -4,12 +4,12 @@ const CONFIG = {
   foodBonusPoints: 100,
   enableFoodBonuses: true,
   goalX: 50,
-  goalY: 34,
+  goalY: 25,
+  goalWindowTopY: 17,
+  goalWindowBottomY: 32.5,
   bonusChance: 0.72,
   windMax: 12,
   maximumSwipePixels: 120,
-  minimumGoalPower: 48,
-  maximumGoalPower: 84,
   powerForCenteredGoal: 68,
   horizontalAimScale: 0.55,
   windInfluence: 0.35,
@@ -345,14 +345,11 @@ function completeKick(success, distance, bonusLabel) {
 }
 
 function determineGoal(successX, successY) {
-  const power = Number(elements.powerControl.value);
   return (
     successX >= CONFIG.goalX - 7 &&
     successX <= CONFIG.goalX + 7 &&
-    successY >= CONFIG.goalY - 5 &&
-    successY <= CONFIG.goalY + 5 &&
-    power >= CONFIG.minimumGoalPower &&
-    power <= CONFIG.maximumGoalPower
+    successY >= CONFIG.goalWindowTopY &&
+    successY <= CONFIG.goalWindowBottomY
   );
 }
 
