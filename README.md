@@ -30,10 +30,10 @@ Then visit:
 
 This project is designed for static deployment through GitHub Pages. Keep the relative asset references and use the repository name `wff-fancy-field-goal`.
 
-Example live routes:
+Expected live routes after enabling GitHub Pages:
 
-- https://ira-sfa.github.io/wff-fancy-field-goal/
-- https://ira-sfa.github.io/wff-fancy-field-goal/admin.html
+- https://ira-sfa.github.io/fancy-fieldgoal/
+- https://ira-sfa.github.io/fancy-fieldgoal/admin.html
 
 ## Notes
 
